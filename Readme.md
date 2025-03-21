@@ -6,7 +6,7 @@ Vous allez améliorer la situation pour que l'équipe puisse se servir du code d
 cf class SimpleBloomFilter.
 
 Cette classe permet de modéliser des filtres de Bloom. 
-Les positions renvoyés par la/les fonction(s) de hashage (méthode '_hashes') d'un élément donnée modifieront les bits du filtre
+Les positions renvoyés par la/les fonction(s) de hashage (méthode '_hashes') d'un élément donné modifieront les bits du filtre
 en ses positions de 0 à 1 à l'ajout de cet élément (méthode 'add'). 
 On peut vérifier la présence d'un élément dans le filtre de Bloom (méthode 'contains') mais il peut y avoir des faux positifs.
 
@@ -26,15 +26,14 @@ cf class Structure.
 
 Cette classe a pour objectif de construire un arbre de données (méthode '_build_tree'). 
 Pour chaque jeu de données, un filtre de Bloom est produit : ils constitueront les noeuds-feuilles.
-Afin de créer les noeuds-parents, on fusionne les filtres de Bloom des noeuds-fils. Le nouveau filtre de Bloom contiendra les valeurs de présences et d'absence des 2 filtres-fils (méthode 'merge' de la classe SimpleBloomFilter). 
+Afin de créer les noeuds-parents, on fusionne les filtres de Bloom des noeuds-fils. Le nouveau filtre de Bloom contiendra les valeurs de présences et d'absences des 2 filtres-fils (méthode 'merge' de la classe SimpleBloomFilter). 
 On réalise cette opération jusqu'au noeud-racine.
 A partir de ce dernier, on pourra déterminer rapidement l'absence ou la présence d'un élement dans l'arbre en le hashant et en 
-vérifiant si les positions données par le hash sont toutes présentes dans le filtre de Bloom du noeud-racine et s'il est noté présent, on remontera les filtres de Bloom pour retrouver le jeu de données dans lequel il est présent (méthode 'query' et '__query_recursive' s'appuyant sur la méthode 'contains' de SimpleBloomFilter).
+vérifiant si les positions données par le hash sont toutes présentes dans le filtre de Bloom du noeud-racine et, s'il est noté présent, on remontera les filtres de Bloom pour retrouver le jeu de données dans lequel il est présent (méthode 'query' et '__query_recursive' s'appuyant sur la méthode 'contains' de SimpleBloomFilter).
 
 4. Cette structure mélange donc deux structures de données que nous avons vues. Quelles sont elles ?
 
-Cette structure mélange deux structures de données : les filtres de Bloom correspondant à des tables de hashage particulières et les arbres 
-de données pour organiser les filtres.
+Cette structure mélange deux structures de données : les filtres de Bloom correspondant à des tables de hashage particulières et les arbres de données pour organiser les filtres.
 
 4. D'après vous, que peut-on dire sur la complexité de la requête de cette structure ? 
 
@@ -45,9 +44,9 @@ La complextié de requête dans cette structure est donc (au pire des cas) : O(n
 5. Quelles sont les différences avec la table basée sur une MPHF que nous avons vu ? 
 
 Avec une table basée sur une MPHF, les risques de collision sont nuls contrairement à un filtre de Bloom qui permet les faux positifs en cas de surcharge du filtre par exemple. Cependant, l'utilisation de filtre de Bloom permet de réduire l'espace mémoire nécessaire. 
-La complexité de requête dans une MPHF est de O(1) contrairement à une requête dans un filtre (O(k) et donc O(n*k) dans un arbre de données utilsant 
-des filtres de Bloom).
+La complexité de requête dans une MPHF est de O(1) contrairement à une requête dans un filtre (O(k) et donc O(n*k) dans un arbre de données utilsant des filtres de Bloom).
 En conclusion, l'utilisation de filtre de Bloom plutôt que d'une table basée sur une MPHF permet de réduire l'espace mémoire alloué mais l'utilisation d'une MPHF permet d'éviter les faux positifs (de par son caractère déterministe) et une requête en temps constant.
 
 6. Bonus : Pouvez-vous retracer de quel papier de bioinformatique vient cette idée ?
+
 Bifrost: Highly Parallel Construction and Indexing of Colored and Compacted de Bruijn Graphs" (2018).

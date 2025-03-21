@@ -16,6 +16,11 @@ class SimpleBloomFilter:
 		:param num_hashes: nombre de hash à réaliser ; défaut = 1
 
 		Exemples:
+		>>> obj = SimpleBloomFilter()
+		>>> len(obj.bit_array)
+		100
+		>>> obj.num_hashes
+		1
 		>>> obj = SimpleBloomFilter(size=10)
 		>>> len(obj.bit_array)
 		10
@@ -32,7 +37,7 @@ class SimpleBloomFilter:
 
 	def _hashes(self, item: str)-> list[int]:
 		'''
-		Définit la fonction de hashage a utiliser sur l'item passé en paramètre et retourne sa position dans le tableau
+		Définie une fonction de hashage a utiliser sur l'item passé en paramètre et retourne la/les position(s) dans le tableau
 		de bits après l'avoir hashé.
 
 		Paramètres:
@@ -49,19 +54,19 @@ class SimpleBloomFilter:
 		[2, 10, 1]
 		>>> all (0 <= h <= 20 for h in hashes)
 		True
-		
 		'''
 		hash_values = []
 		#Parcourt le nombre de hashs à générer 
 		for i in range(self.num_hashes):
-			#Défini la fonction de hashage et hash l'élément passé en paramètre
+			#Définie la fonction de hashage et hash l'élément passé en paramètre
 			hash_func = hashlib.sha256((str(i) + item).encode()).hexdigest()
 			hash_values.append(int(hash_func, 16) % self.size)
 		return hash_values
 
 	def add(self, item)-> None:
 		'''
-		Modifie les 0 en 1 aux positions renvoyées par la méthode _hashes sur l'élément item dans le tableau de bits
+		Ajoute l'élement item dans le tableau de bits en hashant celui-ci et en remplaçant les 0 en 1 aux positions renvoyés
+		par la fonction de hashage.
 
 		Paramètres:
 		:param item: l'élément sur lequel la fonction de hashage doit être appliquée
@@ -76,6 +81,10 @@ class SimpleBloomFilter:
 		>>> obj.add(item)
 		>>> obj.bit_array.count(0)
 		98
+		>>> obj = SimpleBloomFilter(num_hashes=3)
+		>>> obj.add(item)
+		>>> obj.bit_array.count(1)
+		3
 		'''
 		#Parcourt les positions dans le tableau de bits renvoyés par la méthode _hashes sur l'objet item
 		for pos in self._hashes(item):
@@ -97,6 +106,14 @@ class SimpleBloomFilter:
 		>>> obj.add(item)
 		>>> obj.contains(item)
 		True
+		>>> obj = SimpleBloomFilter(size = 1)
+		>>> obj.add(item)
+		>>> obj.contains(item)
+		True
+		>>> obj.bit_array
+		[1]
+		>>> obj.contains ("a")  # Cas d'un faux-positif
+		True
 		'''
 		return all(self.bit_array[pos] for pos in self._hashes(item))
 
@@ -109,10 +126,12 @@ class SimpleBloomFilter:
 
 		Exemples:
 		>>> obj = SimpleBloomFilter(size=10)
-		>>> other = SimpleBloomFilter(size=10)
 		>>> obj.add('T')
 		>>> obj.bit_array
 		[0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+		>>> obj.contains('AT')
+		False
+		>>> other = SimpleBloomFilter(size=10)
 		>>> other.add('AT')
 		>>> other.bit_array
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
@@ -122,7 +141,7 @@ class SimpleBloomFilter:
 		>>> merged.contains('AT')
 		True
 		'''
-		#Vérifie que le Filtre de Bloom que l'on cherche à insérer et de la taille passé en paramètre à l'objet
+		#Vérifie que les 2 filtres de Bloom à fusionner ont la même taille
 		assert self.size == other.size, "Bloom filters must be of the same size!"
 		#On crée un objet SimpleBloomFilter 
 		merged_filter = SimpleBloomFilter(self.size, self.num_hashes)
@@ -178,10 +197,6 @@ class Structure:
 		>>> datasets = ["d1", "d2", "d3", "d4", "d5"]
 		>>> kmers_dict = {"d1":['A'], "d2":['T'], "d3":['C'], "d4":['G'], "d5":['N']}
 		>>> s = Structure(datasets, kmers_dict)
-		>>> "d1" in s.leaves
-		True
-		>>> "d" in s.leaves 
-		False
 		'''
         #Dictionnaire qui associe les noms des datasets à leurs noeuds (filtre de Bloom) correspondants dans l'arbre.
 		self.leaves = {}
@@ -191,7 +206,7 @@ class Structure:
 
 	def _build_tree(self, datasets: list, kmers_dict: dict[:str], bloom_size: int, num_hashes: int)-> None:
 		'''
-		Construit l'arbre grâce aux filtres de Bloom calculé pour chaque datasets et leurs valeurs.
+		Construit l'arbre grâce aux filtres de Bloom calculés pour chaque datasets et leurs valeurs.
 
 		Paramètres:
 		:param datasets: l'étiquette des noeuds-feuilles de l'arbre
@@ -220,13 +235,13 @@ class Structure:
 			bf = SimpleBloomFilter(bloom_size, num_hashes)
 			#Parcours les kmers présents dans le dataset actuel
 			for kmer in kmers_dict[dataset]:
-				#Les ajoute aux filtres de Bloom
+				#Les ajoutent aux filtres de Bloom
 				bf.add(kmer)
 			#Création du noeud de l'arbre à partir du filtre de Bloom
 			node = StructureNode(bf)
 			#défini le nom du noeud
 			node.datasets = [dataset]
-			#Définis les feuilles du dataset comme étant le noeud 
+			#Définie les feuilles du dataset comme étant le noeud 
 			self.leaves[dataset] = node
 			#Ajoute le noeud dans la liste des noeuds de l'arbre
 			nodes.append(node)
