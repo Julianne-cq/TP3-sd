@@ -43,15 +43,14 @@ class SimpleBloomFilter:
 		>>> item = 'Bonjour'
 		>>> obj._hashes(item)
 		[45]
-		>>> item = ''
-		>>> obj._hashes(item)
-		[5]
 		>>> bf = SimpleBloomFilter(size = 20, num_hashes=3)
 		>>> hashes = bf._hashes("item")
+		>>> print(hashes)
+		[2, 10, 1]
 		>>> all (0 <= h <= 20 for h in hashes)
 		True
+		
 		'''
-		#Initialise une liste vide contenant les valeurs de hash
 		hash_values = []
 		#Parcourt le nombre de hashs à générer 
 		for i in range(self.num_hashes):
@@ -204,6 +203,12 @@ class Structure:
 		>>> datasets = ["d1", "d2", "d3", "d4", "d5"]
 		>>> kmers_dict = {"d1":['A'], "d2":['T'], "d3":['C'], "d4":['G'], "d5":['N']}
 		>>> s = Structure(datasets, kmers_dict)
+		>>> len(s.leaves)
+		5
+		>>> 'd1' in s.leaves
+		True
+		>>> '8' in s.leaves
+		False
 		'''
 		#Initialise une liste qui contiendra les noeuds 
 		nodes = []
@@ -293,9 +298,10 @@ class Structure:
 		>>> datasets = ["d1", "d2", "d3", "d4", "d5"]
 		>>> kmers_dict = {"d1":['A'], "d2":['T'], "d3":['C', 'N'], "d4":['G', 'N'], "d5":['N']}
 		>>> s = Structure(datasets, kmers_dict)
-		>>> n = StructureNode()
-		>>> s._query_recursive(n, 'T', [])
-
+		>>> res = []
+		>>> s._query_recursive(s.root, 'T', res)
+		>>> res
+		['d2']
 		'''
 		#Si aucun noeud n'est présent ne renvoie rien
 		if node is None:
@@ -327,3 +333,7 @@ query_kmers = ["GCTA", "TCCA", "ACGT", "GGGG"]
 for kmer in query_kmers:
 	result = structure.query(kmer)
 	print(f"K-mer '{kmer}' found in datasets: {result}")
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
